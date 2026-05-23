@@ -573,6 +573,8 @@ def export_at_print_size(
     height_in: float,
     dpi: int = 300,
     background_extend: str = "outpaint",
+    use_openai: bool = False,
+    openai_quality: str = "high",
 ) -> np.ndarray:
     """Resize+extend the recovered design to a target physical print size at DPI.
 
@@ -614,8 +616,8 @@ def export_at_print_size(
             pad_x, target_w - new_w - pad_x, border_mode,
         )
 
-    # Outpaint: start with a REFLECTED canvas (gives LaMa real edge content to
-    # extend, not black), then mask the reflected border and let LaMa refine.
+    # Outpaint: start with a REFLECTED canvas (gives the inpainter real edge
+    # content to extend, not black), then mask the reflected border and refine.
     canvas = cv2.copyMakeBorder(
         src_scaled, pad_y, target_h - new_h - pad_y,
         pad_x, target_w - new_w - pad_x, cv2.BORDER_REFLECT_101,
@@ -625,9 +627,12 @@ def export_at_print_size(
     out_mask[pad_y + new_h:, :] = 255
     out_mask[:, :pad_x] = 255
     out_mask[:, pad_x + new_w:] = 255
-    # Shrink the LaMa mask slightly inside the reflected zone so the original
-    # edge transition is preserved (no double-process near the seam).
-    canvas = lama_inpaint_hq(canvas, out_mask, context_pad_px=192, max_window_dim=2000)
+    if use_openai:
+        from openai_inpaint import openai_inpaint_hq
+        canvas = openai_inpaint_hq(canvas, out_mask, context_pad_px=192,
+                                   quality=openai_quality)
+    else:
+        canvas = lama_inpaint_hq(canvas, out_mask, context_pad_px=192, max_window_dim=2000)
     return canvas
 
 
@@ -641,6 +646,8 @@ def process_one(
     keep_bottom_brand: bool = False,
     dpi: int = 300,
     print_sizes: list[str] | None = None,
+    use_openai: bool = False,
+    openai_quality: str = "high",
     verbose: bool = True,
 ):
     base = os.path.splitext(os.path.basename(mockup_path))[0]
@@ -650,14 +657,27 @@ def process_one(
     design_mask = (tpl == 0).astype(np.uint8)
     hardware_mask = cv2.dilate((tpl > 0).astype(np.uint8) * 255, np.ones((5, 5), np.uint8), iterations=1)
 
-    # 1. Hardware inpaint with high-res LaMa
+    # Pick inpainter: OpenAI gpt-image-1 if requested + key present, else LaMa
+    if use_openai:
+        from openai_inpaint import openai_inpaint_hq, DEFAULT_PROMPT, TEXT_REMOVAL_PROMPT
+        def inpaint(rgb_, mask_, prompt=DEFAULT_PROMPT, **kw):
+            return openai_inpaint_hq(rgb_, mask_, quality=openai_quality, prompt=prompt,
+                                     context_pad_px=kw.get("context_pad_px", 256))
+        engine_name = f"OpenAI gpt-image-1 ({openai_quality})"
+    else:
+        def inpaint(rgb_, mask_, prompt=None, **kw):
+            return lama_inpaint_hq(rgb_, mask_,
+                                   context_pad_px=kw.get("context_pad_px", 256),
+                                   max_window_dim=kw.get("max_window_dim", 2000))
+        engine_name = "LaMa (local)"
+
+    # 1. Hardware inpaint
     if verbose:
-        print(f"  [hardware] LaMa-inpaint, context_pad=256, max_window=2000")
-    rgb_clean = lama_inpaint_hq(
-        rgb, hardware_mask,
-        context_pad_px=256, max_window_dim=2000,
-        on_progress=(lambda i, n, w_, dt: print(f"    region {i}/{n}: {w_.w}x{w_.h}px in {dt:.1f}s")) if verbose else None,
-    )
+        print(f"  [hardware] {engine_name}")
+    rgb_clean = inpaint(rgb, hardware_mask, prompt=
+        "Seamlessly continue the surrounding pattern across the transparent area. "
+        "Match colours, lines and style. No new objects, text, or borders.",
+        context_pad_px=256)
 
     # Save "design with text"
     cropped_keep = crop_to_bbox(rgb_clean, design_mask)
@@ -681,11 +701,13 @@ def process_one(
         if (lama_text_mask > 0).any():
             if verbose:
                 n = int((lama_text_mask > 0).sum())
-                print(f"    LaMa-inpaint queued non-band text ({n:,} px)")
-            rgb_blank = lama_inpaint_hq(
+                print(f"    {engine_name}-inpaint queued non-band text ({n:,} px)")
+            rgb_blank = inpaint(
                 rgb_blank, lama_text_mask,
+                prompt="Remove the text inside the transparent area. Fill it "
+                       "with the matching surrounding background — same colour, "
+                       "same pattern, same gradient. No new text or graphics.",
                 context_pad_px=256, max_window_dim=1800,
-                on_progress=(lambda i, n_, w_, dt: print(f"      region {i}/{n_}: {w_.w}x{w_.h}px in {dt:.1f}s")) if verbose else None,
             )
 
         cropped_blank = crop_to_bbox(rgb_blank, design_mask)
@@ -709,7 +731,9 @@ def process_one(
             if verbose:
                 print(f"  [size] {size_label}  -> {int(w_in*dpi)}x{int(h_in*dpi)}px outpaint")
             sized = export_at_print_size(primary_for_resizing, w_in, h_in, dpi=dpi,
-                                         background_extend="outpaint")
+                                         background_extend="outpaint",
+                                         use_openai=use_openai,
+                                         openai_quality=openai_quality)
             name = f"{base}_{size_label.replace('.', '_')}_in_{dpi}dpi"
             Image.fromarray(sized).save(os.path.join(size_dir, f"{name}.png"), dpi=(dpi, dpi))
             Image.fromarray(sized).save(os.path.join(size_dir, f"{name}.pdf"), "PDF", resolution=dpi)
@@ -729,6 +753,11 @@ def main():
     p.add_argument("--dpi", type=int, default=300)
     p.add_argument("--print-sizes", default="",
                    help="Comma-separated print sizes, e.g. 16x20,18x24,22x29,24x32.125")
+    p.add_argument("--use-openai", action="store_true",
+                   help="Use OpenAI gpt-image-1 instead of local LaMa. "
+                        "Requires OPENAI_API_KEY env var. Per-call billing applies.")
+    p.add_argument("--openai-quality", default="high", choices=["low", "medium", "high"],
+                   help="gpt-image-1 quality (cost scales). Default high.")
     args = p.parse_args()
     os.makedirs(args.out, exist_ok=True)
 
@@ -744,7 +773,9 @@ def main():
                     remove_text=args.remove_text,
                     keep_bottom_brand=args.keep_bottom_brand,
                     dpi=args.dpi,
-                    print_sizes=sizes)
+                    print_sizes=sizes,
+                    use_openai=args.use_openai,
+                    openai_quality=args.openai_quality)
 
 
 if __name__ == "__main__":
