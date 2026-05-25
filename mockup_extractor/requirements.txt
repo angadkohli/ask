@@ -1,0 +1,15 @@
+# Web app + extractor v1 deps
+gradio>=4.0
+opencv-python-headless>=4.8
+numpy>=1.24
+Pillow>=10.0
+vtracer>=0.6
+
+# PSD reading
+psd-tools>=1.17
+
+# v2 generative inpainting + OCR
+simple-lama-inpainting>=0.1.2
+easyocr>=1.7
+torch>=2.0
+torchvision>=0.15

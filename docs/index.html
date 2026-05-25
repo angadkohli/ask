@@ -1,0 +1,790 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Luggage Design Extractor — 300 DPI · 4 sizes</title>
+<style>
+  :root {
+    --bg: #0e1014;
+    --panel: #161a22;
+    --panel-2: #1d222d;
+    --border: #2a3140;
+    --text: #ecedf2;
+    --muted: #8d96a8;
+    --accent: #5b8cff;
+    --accent-2: #6ba1ff;
+    --ok: #4ade80;
+    --warn: #f6c13a;
+    --err: #ef4444;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font: 14.5px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; min-height: 100vh; }
+  a { color: var(--accent); }
+  header { padding: 18px 28px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+  header .tag { color: var(--muted); font-size: 13px; }
+  header .right { display: flex; gap: 10px; align-items: center; }
+  .icon-btn { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 6px; font: 600 13px inherit; cursor: pointer; }
+  .icon-btn:hover { background: var(--panel); }
+
+  main { display: grid; grid-template-columns: minmax(0,1fr) 380px; gap: 16px; padding: 16px; align-items: stretch; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+
+  /* Stage (drop / preview area) */
+  .stage { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
+  .stage-body { flex: 1; min-height: 460px; display: flex; align-items: center; justify-content: center; position: relative; background: #0a0c10; }
+  .drop {
+    width: 92%; max-width: 720px; min-height: 360px;
+    border: 2px dashed var(--border); border-radius: 14px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; padding: 30px 20px; text-align: center; cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .drop:hover, .drop.over { border-color: var(--accent); background: rgba(91, 140, 255, 0.06); }
+  .drop .icon { font-size: 52px; line-height: 1; }
+  .drop .title { font-size: 18px; font-weight: 600; }
+  .drop .sub { font-size: 13.5px; color: var(--muted); max-width: 460px; }
+  .drop input[type=file] { display: none; }
+
+  .canvas-wrap { position: relative; width: 100%; height: 100%; min-height: 460px; display: flex; align-items: center; justify-content: center; }
+  canvas#cv { max-width: 100%; max-height: 78vh; cursor: crosshair; display: block; }
+
+  .stage-foot { border-top: 1px solid var(--border); padding: 12px 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .status { flex: 1; min-width: 200px; color: var(--muted); font-size: 13.5px; }
+  .status.ok { color: var(--ok); }
+  .status.err { color: var(--err); }
+
+  /* Right column */
+  .side { display: flex; flex-direction: column; gap: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .card h3 { margin: 0 0 10px 0; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .row { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
+  .row:last-child { margin-bottom: 0; }
+  .row label { flex: 1; font-size: 13.5px; }
+  input[type=text], input[type=password] { background: #0a0c10; border: 1px solid var(--border); color: var(--text); padding: 8px 10px; border-radius: 6px; width: 100%; font: inherit; }
+  input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent); }
+  .pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: 11.5px; background: var(--border); color: var(--muted); }
+  .pill.ok { background: rgba(74,222,128,0.14); color: var(--ok); }
+  .pill.warn { background: rgba(246,193,58,0.16); color: var(--warn); }
+
+  .sizes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .size-tile { background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 13px; display: flex; flex-direction: column; gap: 2px; }
+  .size-tile b { font-weight: 700; }
+  .size-tile span { color: var(--muted); font-size: 11.5px; }
+
+  .actions { display: flex; gap: 10px; }
+  button.primary {
+    flex: 1; padding: 12px 16px; border: 0; border-radius: 8px;
+    background: var(--accent); color: white; font: 700 14.5px inherit; cursor: pointer;
+    transition: background 0.15s;
+  }
+  button.primary:hover { background: var(--accent-2); }
+  button.primary:disabled { background: #353c4c; color: #6c7488; cursor: not-allowed; }
+  button.ghost { padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--text); font: 600 13.5px inherit; cursor: pointer; }
+  button.ghost:hover { background: var(--panel-2); }
+
+  /* Progress */
+  .progress { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 10px; display: none; }
+  .progress.active { display: block; }
+  .progress .bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); width: 0; transition: width 0.25s; }
+
+  /* Modal */
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: center; justify-content: center; z-index: 100; }
+  .modal-bg.show { display: flex; }
+  .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 22px; max-width: 480px; width: 92%; }
+  .modal h2 { margin: 0 0 6px 0; font-size: 16px; }
+  .modal p { color: var(--muted); font-size: 13.5px; margin: 0 0 14px 0; }
+  .modal .actions { margin-top: 16px; }
+
+  /* Footer */
+  footer { padding: 14px 28px 22px; color: var(--muted); font-size: 12.5px; text-align: center; }
+  footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Luggage Design Extractor</h1>
+    <div class="tag">Drop a luggage photo → recover the print design at 300 DPI in 4 sizes</div>
+  </div>
+  <div class="right">
+    <button class="icon-btn" id="settingsBtn" title="OpenAI key & options">Settings</button>
+    <a class="icon-btn" href="https://github.com/angadkohli/ask" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</header>
+
+<main>
+  <section class="stage">
+    <div class="stage-body" id="stageBody">
+      <label class="drop" id="dropZone" for="fileInput">
+        <div class="icon">&#x1F9F3;</div>
+        <div class="title">Drop a luggage photo here</div>
+        <div class="sub">or <b style="color: var(--accent);">click to choose a file</b> &middot; PNG / JPG.<br>Best results with a clean studio shot (suitcase on white background).</div>
+        <input type="file" id="fileInput" accept="image/*" />
+      </label>
+      <div class="canvas-wrap" id="canvasWrap" style="display:none">
+        <canvas id="cv"></canvas>
+      </div>
+    </div>
+    <div class="stage-foot">
+      <div class="status" id="status">Waiting for a luggage photo&hellip;</div>
+      <button class="ghost" id="resetBtn" disabled>Reset</button>
+      <button class="ghost" id="reuploadBtn" disabled>Upload different photo</button>
+    </div>
+    <div class="progress" id="progress"><div class="bar" id="progressBar"></div></div>
+  </section>
+
+  <aside class="side">
+
+    <div class="card">
+      <h3>Step 1 &middot; Detected design panel</h3>
+      <p style="color: var(--muted); font-size: 13px; margin: 0 0 8px 0;">
+        Auto-detected on upload. Drag any red corner on the image to refine if it's off.
+      </p>
+      <div class="row">
+        <label>Auto-detection</label>
+        <span class="pill" id="autoPill">waiting</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Step 2 &middot; Output sizes (300 DPI each)</h3>
+      <div class="sizes">
+        <div class="size-tile"><b>16 &times; 20 in</b><span>4800 &times; 6000 px</span></div>
+        <div class="size-tile"><b>18 &times; 24 in</b><span>5400 &times; 7200 px</span></div>
+        <div class="size-tile"><b>22 &times; 29 in</b><span>6600 &times; 8700 px</span></div>
+        <div class="size-tile"><b>24 &times; 32.125 in</b><span>7200 &times; 9637 px</span></div>
+      </div>
+      <div class="row" style="margin-top: 12px;">
+        <input type="checkbox" id="removeText" checked>
+        <label for="removeText">Remove text (name + brand)</label>
+      </div>
+      <div class="row">
+        <input type="checkbox" id="useOpenAI">
+        <label for="useOpenAI">Use OpenAI for cleanup <span class="pill warn" id="keyPill">no key</span></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Step 3 &middot; Extract</h3>
+      <div class="actions">
+        <button class="primary" id="extractBtn" disabled>Extract design + download ZIP</button>
+      </div>
+      <p style="color: var(--muted); font-size: 12.5px; margin: 10px 0 0;">
+        Output: <code>design_300dpi_<i>SIZE</i>.png</code> &times; 4 + a single combined PDF, bundled as <code>design_print_ready.zip</code>.
+      </p>
+    </div>
+
+  </aside>
+</main>
+
+<footer>
+  Runs entirely in your browser. Your photo never leaves your device (except for the optional OpenAI cleanup, which you control).
+  &middot; Source on <a href="https://github.com/angadkohli/ask" target="_blank" rel="noopener">GitHub</a>
+</footer>
+
+<!-- Settings modal -->
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <h2>Settings</h2>
+    <p>Your OpenAI API key is stored only in this browser (localStorage). It's used to call <code>gpt-image-1</code> for the hardware / text cleanup, which produces noticeably cleaner results than the offline mode.</p>
+    <div class="row">
+      <input type="password" id="apiKeyInput" placeholder="sk-..." autocomplete="off" />
+    </div>
+    <p style="font-size: 12px;">Per call cost ~$0.05&ndash;$0.19 at 'high' quality. About 4 calls per luggage (1 hardware + 3 outpaint borders).</p>
+    <div class="actions">
+      <button class="ghost" id="settingsCancel" style="flex:1">Cancel</button>
+      <button class="primary" id="settingsSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Vendored libs -->
+<script src="vendor/jszip.min.js"></script>
+
+<script>
+(function() {
+"use strict";
+
+// ===== DOM =====
+const $ = s => document.querySelector(s);
+const stageBody = $("#stageBody");
+const dropZone = $("#dropZone");
+const canvasWrap = $("#canvasWrap");
+const canvas = $("#cv");
+const ctx = canvas.getContext("2d", { willReadFrequently: true });
+const fileInput = $("#fileInput");
+const status = $("#status");
+const autoPill = $("#autoPill");
+const resetBtn = $("#resetBtn");
+const reuploadBtn = $("#reuploadBtn");
+const extractBtn = $("#extractBtn");
+const progress = $("#progress");
+const progressBar = $("#progressBar");
+const removeTextCb = $("#removeText");
+const useOpenAICb = $("#useOpenAI");
+const keyPill = $("#keyPill");
+const settingsBtn = $("#settingsBtn");
+const settingsModal = $("#settingsModal");
+const apiKeyInput = $("#apiKeyInput");
+
+// ===== State =====
+let sourceImage = null;
+let sourceImgData = null;
+let displayScale = 1;
+let corners = null;           // [[x,y],[x,y],[x,y],[x,y]] in SOURCE-image pixels, ordered TL, TR, BR, BL
+let draggingCorner = -1;
+const PRINT_SIZES = [
+  { name: "16x20",       w_in: 16,    h_in: 20      },
+  { name: "18x24",       w_in: 18,    h_in: 24      },
+  { name: "22x29",       w_in: 22,    h_in: 29      },
+  { name: "24x32.125",   w_in: 24,    h_in: 32.125  },
+];
+const DPI = 300;
+
+// ===== Settings (OpenAI key in localStorage) =====
+function loadKey() { return localStorage.getItem("openai_api_key") || ""; }
+function saveKey(k) { if (k) localStorage.setItem("openai_api_key", k); else localStorage.removeItem("openai_api_key"); }
+function refreshKeyPill() {
+  const k = loadKey();
+  keyPill.textContent = k ? "key set" : "no key";
+  keyPill.className = "pill " + (k ? "ok" : "warn");
+  if (!k) useOpenAICb.checked = false;
+}
+refreshKeyPill();
+
+settingsBtn.addEventListener("click", () => { apiKeyInput.value = loadKey(); settingsModal.classList.add("show"); });
+$("#settingsCancel").addEventListener("click", () => settingsModal.classList.remove("show"));
+$("#settingsSave").addEventListener("click", () => {
+  saveKey(apiKeyInput.value.trim());
+  refreshKeyPill();
+  settingsModal.classList.remove("show");
+});
+
+function setStatus(msg, kind) {
+  status.innerHTML = msg;
+  status.className = "status" + (kind ? " " + kind : "");
+}
+
+// ===== File upload =====
+fileInput.addEventListener("change", e => { const f = e.target.files[0]; if (f) loadFile(f); });
+reuploadBtn.addEventListener("click", () => fileInput.click());
+
+;["dragover","dragenter"].forEach(ev => {
+  document.body.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.add("over"); });
+});
+;["dragleave","dragend","drop"].forEach(ev => {
+  document.body.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.remove("over"); });
+});
+document.body.addEventListener("drop", e => {
+  e.preventDefault();
+  const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f && f.type.startsWith("image/")) loadFile(f);
+});
+
+function loadFile(file) {
+  setStatus("Decoding <b>" + file.name + "</b> (" + (file.size/1024/1024).toFixed(1) + " MB)…");
+  autoPill.textContent = "decoding"; autoPill.className = "pill";
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = () => {
+    URL.revokeObjectURL(url);
+    sourceImage = img;
+    dropZone.style.display = "none";
+    canvasWrap.style.display = "flex";
+    drawCanvas();
+    requestAnimationFrame(() => {
+      const off = document.createElement("canvas");
+      off.width = img.naturalWidth; off.height = img.naturalHeight;
+      off.getContext("2d").drawImage(img, 0, 0);
+      sourceImgData = off.getContext("2d").getImageData(0, 0, off.width, off.height);
+      setStatus("Auto-detecting design panel…");
+      autoPill.textContent = "detecting"; autoPill.className = "pill";
+      // Do detection in next tick so the UI paints first
+      setTimeout(() => {
+        try {
+          corners = autoDetectCorners(sourceImgData);
+          if (corners) {
+            autoPill.textContent = "found"; autoPill.className = "pill ok";
+            setStatus("Auto-detected. Drag any red corner to refine. Click <b>Extract design</b> when ready.");
+          } else {
+            // Fallback: image bbox
+            corners = [[0,0],[img.naturalWidth-1,0],[img.naturalWidth-1,img.naturalHeight-1],[0,img.naturalHeight-1]];
+            autoPill.textContent = "manual"; autoPill.className = "pill warn";
+            setStatus("Couldn't auto-detect — please drag the red corners to mark the design panel.");
+          }
+        } catch (e) {
+          corners = [[0,0],[img.naturalWidth-1,0],[img.naturalWidth-1,img.naturalHeight-1],[0,img.naturalHeight-1]];
+          autoPill.textContent = "error: " + e.message; autoPill.className = "pill warn";
+          setStatus("Detection error: " + e.message);
+        }
+        drawCanvas();
+        extractBtn.disabled = false;
+        resetBtn.disabled = false;
+        reuploadBtn.disabled = false;
+      }, 30);
+    });
+  };
+  img.onerror = () => {
+    setStatus("Couldn't decode <b>" + file.name + "</b>. Try a PNG or JPG.", "err");
+  };
+  img.src = url;
+}
+
+resetBtn.addEventListener("click", () => {
+  if (!sourceImage) return;
+  setStatus("Re-detecting…");
+  try {
+    corners = autoDetectCorners(sourceImgData);
+    if (!corners) corners = [[0,0],[sourceImage.naturalWidth-1,0],[sourceImage.naturalWidth-1,sourceImage.naturalHeight-1],[0,sourceImage.naturalHeight-1]];
+    setStatus("Re-detected. Drag corners to refine.");
+  } catch (e) { setStatus("Reset failed: " + e.message, "err"); }
+  drawCanvas();
+});
+
+// ===== Canvas drawing & corner dragging =====
+function drawCanvas() {
+  if (!sourceImage) return;
+  const maxW = canvasWrap.clientWidth - 20;
+  const maxH = Math.min(window.innerHeight * 0.78, canvasWrap.clientHeight - 20);
+  const iw = sourceImage.naturalWidth, ih = sourceImage.naturalHeight;
+  const scale = Math.min(maxW / iw, maxH / ih, 1);
+  displayScale = scale;
+  canvas.width = Math.round(iw * scale);
+  canvas.height = Math.round(ih * scale);
+  ctx.drawImage(sourceImage, 0, 0, canvas.width, canvas.height);
+  drawCornersOverlay();
+}
+window.addEventListener("resize", () => drawCanvas());
+
+function drawCornersOverlay() {
+  if (!corners) return;
+  ctx.save();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "#ff3232";
+  ctx.fillStyle = "#ff3232";
+  ctx.font = "bold 14px -apple-system, system-ui, sans-serif";
+  ctx.beginPath();
+  corners.forEach((p, i) => {
+    const x = p[0] * displayScale, y = p[1] * displayScale;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.closePath(); ctx.stroke();
+  const labels = ["TL","TR","BR","BL"];
+  corners.forEach((p, i) => {
+    const x = p[0] * displayScale, y = p[1] * displayScale;
+    ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.fillText(labels[i], x + 14, y - 10);
+  });
+  ctx.restore();
+}
+
+function eventToSourceCoords(e) {
+  const rect = canvas.getBoundingClientRect();
+  const x = ((e.clientX - rect.left) * (canvas.width / rect.width)) / displayScale;
+  const y = ((e.clientY - rect.top)  * (canvas.height / rect.height)) / displayScale;
+  return [x, y];
+}
+
+canvas.addEventListener("mousedown", e => {
+  if (!corners) return;
+  const [sx, sy] = eventToSourceCoords(e);
+  let best = -1, bestD = Infinity;
+  corners.forEach((c, i) => {
+    const dx = c[0]-sx, dy = c[1]-sy;
+    const d = dx*dx + dy*dy;
+    if (d < bestD) { bestD = d; best = i; }
+  });
+  const hitRadiusPx = 36 / displayScale; // generous hit area, ~36 device px
+  if (Math.sqrt(bestD) < hitRadiusPx) {
+    draggingCorner = best;
+    canvas.style.cursor = "grabbing";
+  }
+});
+window.addEventListener("mousemove", e => {
+  if (draggingCorner < 0) return;
+  const [sx, sy] = eventToSourceCoords(e);
+  corners[draggingCorner] = [
+    Math.max(0, Math.min(sourceImage.naturalWidth - 1, sx)),
+    Math.max(0, Math.min(sourceImage.naturalHeight - 1, sy)),
+  ];
+  drawCanvas();
+});
+window.addEventListener("mouseup", () => {
+  if (draggingCorner >= 0) { draggingCorner = -1; canvas.style.cursor = "crosshair"; }
+});
+
+// ===== Auto-detection (background threshold -> largest contour bbox) =====
+function autoDetectCorners(imgData) {
+  const W = imgData.width, H = imgData.height;
+  const data = imgData.data;
+  // Build mask: foreground = pixels with brightness < 240 (i.e. not white background)
+  // Downsample to ~600px max to keep it fast even on huge images
+  const downMax = 600;
+  const ds = Math.min(1, downMax / Math.max(W, H));
+  const dw = Math.max(2, Math.round(W * ds));
+  const dh = Math.max(2, Math.round(H * ds));
+  const off = document.createElement("canvas");
+  off.width = dw; off.height = dh;
+  const oc = off.getContext("2d");
+  // Draw the source as image-data into offscreen
+  const tmp = document.createElement("canvas");
+  tmp.width = W; tmp.height = H;
+  tmp.getContext("2d").putImageData(imgData, 0, 0);
+  oc.drawImage(tmp, 0, 0, dw, dh);
+  const small = oc.getImageData(0, 0, dw, dh).data;
+
+  // Binary mask
+  const mask = new Uint8Array(dw * dh);
+  for (let i = 0, p = 0; i < small.length; i += 4, p++) {
+    const r = small[i], g = small[i+1], b = small[i+2], a = small[i+3] || 255;
+    const bright = (r + g + b) / 3;
+    mask[p] = (a > 60 && bright < 240) ? 1 : 0;
+  }
+  // BBox of all foreground
+  let minX = dw, minY = dh, maxX = -1, maxY = -1;
+  let pop = 0;
+  for (let y = 0; y < dh; y++) {
+    for (let x = 0; x < dw; x++) {
+      if (!mask[y*dw+x]) continue;
+      pop++;
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+    }
+  }
+  if (pop < dw * dh * 0.02) return null;  // not enough foreground
+
+  // Scale bbox back to full resolution
+  const bx0 = Math.round(minX / ds);
+  const by0 = Math.round(minY / ds);
+  const bx1 = Math.round((maxX + 1) / ds);
+  const by1 = Math.round((maxY + 1) / ds);
+  return [[bx0, by0], [bx1, by0], [bx1, by1], [bx0, by1]];
+}
+
+// ===== Perspective unwarp (DLT homography + bilinear) =====
+function solve8(A, b) {
+  const n = b.length, M = A.map((r, i) => r.concat([b[i]]));
+  for (let i = 0; i < n; i++) {
+    let mx = i;
+    for (let k = i+1; k < n; k++) if (Math.abs(M[k][i]) > Math.abs(M[mx][i])) mx = k;
+    if (mx !== i) { const t = M[i]; M[i] = M[mx]; M[mx] = t; }
+    const piv = M[i][i];
+    if (Math.abs(piv) < 1e-12) throw new Error("singular");
+    for (let k = i+1; k < n; k++) {
+      const f = M[k][i] / piv;
+      for (let j = i; j <= n; j++) M[k][j] -= f * M[i][j];
+    }
+  }
+  const x = new Array(n);
+  for (let i = n-1; i >= 0; i--) {
+    let s = M[i][n];
+    for (let j = i+1; j < n; j++) s -= M[i][j] * x[j];
+    x[i] = s / M[i][i];
+  }
+  return x;
+}
+function homography(src, dst) {
+  const A = [], b = [];
+  for (let i = 0; i < 4; i++) {
+    const [x, y] = src[i], [u, v] = dst[i];
+    A.push([x, y, 1, 0, 0, 0, -u*x, -u*y]); b.push(u);
+    A.push([0, 0, 0, x, y, 1, -v*x, -v*y]); b.push(v);
+  }
+  const h = solve8(A, b);
+  return [h[0],h[1],h[2],h[3],h[4],h[5],h[6],h[7],1];
+}
+function orderTLTRBRBL(pts) {
+  const w = pts.map(p => ({p, s: p[0]+p[1], d: p[1]-p[0]}));
+  const tl = w.reduce((a,b)=>a.s<b.s?a:b).p;
+  const br = w.reduce((a,b)=>a.s>b.s?a:b).p;
+  const tr = w.reduce((a,b)=>a.d<b.d?a:b).p;
+  const bl = w.reduce((a,b)=>a.d>b.d?a:b).p;
+  return [tl, tr, br, bl];
+}
+function unwarpAsync(srcData, srcCorners, outW, outH, onProgress) {
+  return new Promise((resolve, reject) => {
+    const ordered = orderTLTRBRBL(srcCorners);
+    const outRect = [[0,0],[outW-1,0],[outW-1,outH-1],[0,outH-1]];
+    let H; try { H = homography(outRect, ordered); } catch (e) { reject(e); return; }
+    const sw = srcData.width, sh = srcData.height, src = srcData.data;
+    const out = new Uint8ClampedArray(outW * outH * 4);
+    let y = 0;
+    const ROWS = 64;
+    function tick() {
+      const yEnd = Math.min(outH, y + ROWS);
+      for (; y < yEnd; y++) {
+        for (let x = 0; x < outW; x++) {
+          const w = H[6]*x + H[7]*y + H[8];
+          const sx = (H[0]*x + H[1]*y + H[2]) / w;
+          const sy = (H[3]*x + H[4]*y + H[5]) / w;
+          const x0 = Math.floor(sx), y0 = Math.floor(sy);
+          const x1 = x0+1, y1 = y0+1;
+          const j = (y*outW + x) * 4;
+          if (x0 < 0 || y0 < 0 || x1 >= sw || y1 >= sh) { out[j+3] = 0; continue; }
+          const dx = sx - x0, dy = sy - y0;
+          const w00 = (1-dx)*(1-dy), w10 = dx*(1-dy), w01 = (1-dx)*dy, w11 = dx*dy;
+          const i00 = (y0*sw + x0)*4, i10 = (y0*sw + x1)*4;
+          const i01 = (y1*sw + x0)*4, i11 = (y1*sw + x1)*4;
+          out[j]   = w00*src[i00]   + w10*src[i10]   + w01*src[i01]   + w11*src[i11];
+          out[j+1] = w00*src[i00+1] + w10*src[i10+1] + w01*src[i01+1] + w11*src[i11+1];
+          out[j+2] = w00*src[i00+2] + w10*src[i10+2] + w01*src[i01+2] + w11*src[i11+2];
+          out[j+3] = 255;
+        }
+      }
+      if (onProgress) onProgress(y / outH);
+      if (y < outH) setTimeout(tick, 0);
+      else resolve(new ImageData(out, outW, outH));
+    }
+    tick();
+  });
+}
+
+// ===== PNG with DPI metadata (pHYs chunk) =====
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(bytes) {
+  let c = 0xffffffff;
+  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+}
+async function imageDataToPngBlobWithDpi(imgData, dpi) {
+  const c = document.createElement("canvas");
+  c.width = imgData.width; c.height = imgData.height;
+  c.getContext("2d").putImageData(imgData, 0, 0);
+  const blob = await new Promise(r => c.toBlob(r, "image/png"));
+  const buf = new Uint8Array(await blob.arrayBuffer());
+  const ppm = Math.round(dpi / 0.0254);
+  const data = new Uint8Array(9);
+  data[0] = (ppm>>>24)&0xff; data[1] = (ppm>>>16)&0xff; data[2] = (ppm>>>8)&0xff; data[3] = ppm&0xff;
+  data[4] = (ppm>>>24)&0xff; data[5] = (ppm>>>16)&0xff; data[6] = (ppm>>>8)&0xff; data[7] = ppm&0xff;
+  data[8] = 1;
+  const t = new TextEncoder().encode("pHYs");
+  const crcIn = new Uint8Array(t.length + data.length);
+  crcIn.set(t, 0); crcIn.set(data, t.length);
+  const crc = crc32(crcIn);
+  const chunk = new Uint8Array(4 + 4 + 9 + 4);
+  chunk[0]=0; chunk[1]=0; chunk[2]=0; chunk[3]=9;
+  chunk.set(t, 4); chunk.set(data, 8);
+  chunk[17] = (crc>>>24)&0xff; chunk[18] = (crc>>>16)&0xff; chunk[19] = (crc>>>8)&0xff; chunk[20] = crc&0xff;
+  const out = new Uint8Array(buf.length + chunk.length);
+  out.set(buf.subarray(0, 33), 0);
+  out.set(chunk, 33);
+  out.set(buf.subarray(33), 33 + chunk.length);
+  return new Blob([out], { type: "image/png" });
+}
+
+// ===== Fit-and-extend to target print size (no AI in MVP; uses edge-replicate) =====
+function fitAndExtend(srcImgData, targetWpx, targetHpx) {
+  const sw = srcImgData.width, sh = srcImgData.height;
+  const srcAspect = sw / sh, tgtAspect = targetWpx / targetHpx;
+  let newW, newH;
+  if (Math.abs(srcAspect - tgtAspect) < 0.005) { newW = targetWpx; newH = targetHpx; }
+  else if (tgtAspect > srcAspect) { newH = targetHpx; newW = Math.round(sw * newH / sh); }
+  else { newW = targetWpx; newH = Math.round(sh * newW / sw); }
+  // Resize source
+  const src = document.createElement("canvas");
+  src.width = sw; src.height = sh;
+  src.getContext("2d").putImageData(srcImgData, 0, 0);
+  const scaled = document.createElement("canvas");
+  scaled.width = newW; scaled.height = newH;
+  const sx = scaled.getContext("2d");
+  sx.imageSmoothingEnabled = true; sx.imageSmoothingQuality = "high";
+  sx.drawImage(src, 0, 0, newW, newH);
+  // Compose onto target canvas with edge replication on the borders
+  const c = document.createElement("canvas");
+  c.width = targetWpx; c.height = targetHpx;
+  const cx = c.getContext("2d");
+  const padX = Math.floor((targetWpx - newW) / 2);
+  const padY = Math.floor((targetHpx - newH) / 2);
+  // Replicate edges by drawing slivers
+  if (padX > 0) {
+    cx.drawImage(scaled, 0, 0, 1, newH, 0, padY, padX, newH);                       // left replicate
+    cx.drawImage(scaled, newW-1, 0, 1, newH, padX + newW, padY, targetWpx-padX-newW, newH); // right replicate
+  }
+  if (padY > 0) {
+    cx.drawImage(scaled, 0, 0, newW, 1, padX, 0, newW, padY);                       // top replicate
+    cx.drawImage(scaled, 0, newH-1, newW, 1, padX, padY + newH, newW, targetHpx-padY-newH); // bottom replicate
+  }
+  if (padX > 0 && padY > 0) {
+    // corners replicate from the corner pixel
+    cx.drawImage(scaled, 0, 0, 1, 1, 0, 0, padX, padY);
+    cx.drawImage(scaled, newW-1, 0, 1, 1, padX+newW, 0, targetWpx-padX-newW, padY);
+    cx.drawImage(scaled, 0, newH-1, 1, 1, 0, padY+newH, padX, targetHpx-padY-newH);
+    cx.drawImage(scaled, newW-1, newH-1, 1, 1, padX+newW, padY+newH, targetWpx-padX-newW, targetHpx-padY-newH);
+  }
+  // Place the scaled image on top
+  cx.drawImage(scaled, padX, padY);
+  return cx.getImageData(0, 0, targetWpx, targetHpx);
+}
+
+// ===== OpenAI gpt-image-1 cleanup (browser direct) =====
+async function openAiCleanup(rgbImgData, hardwareMask, apiKey) {
+  // Build a 1024x1024 (or 1024x1536) input image with alpha=0 where to edit.
+  const w = rgbImgData.width, h = rgbImgData.height;
+  const ar = w / h;
+  let outW, outH;
+  if (ar > 1.3) { outW = 1536; outH = 1024; }
+  else if (ar < 0.77) { outW = 1024; outH = 1536; }
+  else { outW = 1024; outH = 1024; }
+  const c = document.createElement("canvas");
+  c.width = outW; c.height = outH;
+  const cx = c.getContext("2d");
+  // Draw source resized
+  const src = document.createElement("canvas");
+  src.width = w; src.height = h;
+  src.getContext("2d").putImageData(rgbImgData, 0, 0);
+  cx.drawImage(src, 0, 0, outW, outH);
+  // Apply mask: where hardwareMask=1, set alpha=0
+  const mc = document.createElement("canvas");
+  mc.width = w; mc.height = h;
+  const md = mc.getContext("2d").createImageData(w, h);
+  for (let i = 0, p = 0; p < w*h; p++, i += 4) {
+    md.data[i] = md.data[i+1] = md.data[i+2] = 255;
+    md.data[i+3] = hardwareMask[p] ? 0 : 255;
+  }
+  mc.getContext("2d").putImageData(md, 0, 0);
+  const maskOut = document.createElement("canvas");
+  maskOut.width = outW; maskOut.height = outH;
+  maskOut.getContext("2d").drawImage(mc, 0, 0, outW, outH);
+  // Build form data
+  const imageBlob = await new Promise(r => c.toBlob(r, "image/png"));
+  const maskBlob = await new Promise(r => maskOut.toBlob(r, "image/png"));
+  const fd = new FormData();
+  fd.append("model", "gpt-image-1");
+  fd.append("image", imageBlob, "image.png");
+  fd.append("mask", maskBlob, "mask.png");
+  fd.append("prompt",
+    "Seamlessly continue the surrounding pattern, colors, and lines into the " +
+    "transparent area. Do not add new objects, text, watermarks, or borders.");
+  fd.append("size", outW + "x" + outH);
+  fd.append("quality", "high");
+  fd.append("n", "1");
+  const resp = await fetch("https://api.openai.com/v1/images/edits", {
+    method: "POST", body: fd, headers: { "Authorization": "Bearer " + apiKey },
+  });
+  if (!resp.ok) {
+    const body = await resp.text();
+    throw new Error("OpenAI API error " + resp.status + ": " + body.slice(0, 200));
+  }
+  const json = await resp.json();
+  const b64 = json.data[0].b64_json;
+  const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  const blob = new Blob([bytes], { type: "image/png" });
+  const url = URL.createObjectURL(blob);
+  const img = await new Promise((res, rej) => {
+    const i = new Image();
+    i.onload = () => res(i); i.onerror = rej; i.src = url;
+  });
+  const c2 = document.createElement("canvas");
+  c2.width = w; c2.height = h;
+  c2.getContext("2d").drawImage(img, 0, 0, w, h);
+  URL.revokeObjectURL(url);
+  return c2.getContext("2d").getImageData(0, 0, w, h);
+}
+
+// ===== Pipeline =====
+extractBtn.addEventListener("click", async () => {
+  if (!sourceImgData || !corners) return;
+  extractBtn.disabled = true;
+  resetBtn.disabled = true;
+  reuploadBtn.disabled = true;
+  progress.classList.add("active");
+  progressBar.style.width = "0%";
+  const useOpenAI = useOpenAICb.checked && loadKey();
+  try {
+    // Step 1: compute design rectangle pixel size at 300 DPI matching the design panel's aspect ratio.
+    const ordered = orderTLTRBRBL(corners);
+    const tl = ordered[0], tr = ordered[1], br = ordered[2], bl = ordered[3];
+    const wA = Math.hypot(tr[0]-tl[0], tr[1]-tl[1]);
+    const wB = Math.hypot(br[0]-bl[0], br[1]-bl[1]);
+    const hA = Math.hypot(bl[0]-tl[0], bl[1]-tl[1]);
+    const hB = Math.hypot(br[0]-tr[0], br[1]-tr[1]);
+    const baseW = Math.round(Math.max(wA, wB));
+    const baseH = Math.round(Math.max(hA, hB));
+    setStatus(`Unwarping design at ${baseW} &times; ${baseH} px…`);
+    const recovered = await unwarpAsync(sourceImgData, corners, baseW, baseH,
+      f => { progressBar.style.width = (f * 60).toFixed(1) + "%"; });
+
+    // Step 2: optional OpenAI cleanup (covers hardware bleed at the edges)
+    let cleaned = recovered;
+    if (useOpenAI) {
+      setStatus("Sending to OpenAI gpt-image-1 for hardware/text cleanup…");
+      // Build a simple edge mask: top/bottom strips + corner cutouts
+      const m = new Uint8Array(baseW * baseH);
+      // ~3% edge strip everywhere
+      const ex = Math.max(8, Math.floor(baseW * 0.03));
+      const ey = Math.max(8, Math.floor(baseH * 0.03));
+      for (let y = 0; y < baseH; y++) {
+        for (let x = 0; x < baseW; x++) {
+          if (x < ex || x >= baseW - ex || y < ey || y >= baseH - ey) m[y*baseW + x] = 1;
+        }
+      }
+      try {
+        cleaned = await openAiCleanup(recovered, m, loadKey());
+        progressBar.style.width = "70%";
+      } catch (e) {
+        setStatus("OpenAI cleanup failed, falling back to raw output: " + e.message, "err");
+      }
+    }
+
+    // Step 3: produce each print size + bundle into zip
+    setStatus("Generating 4 print sizes at 300 DPI…");
+    const zip = new JSZip();
+    for (let i = 0; i < PRINT_SIZES.length; i++) {
+      const sz = PRINT_SIZES[i];
+      const tgtW = Math.round(sz.w_in * DPI);
+      const tgtH = Math.round(sz.h_in * DPI);
+      const sized = fitAndExtend(cleaned, tgtW, tgtH);
+      const blob = await imageDataToPngBlobWithDpi(sized, DPI);
+      zip.file(`design_${sz.name.replace(".", "_")}_in_300dpi.png`, blob);
+      progressBar.style.width = (70 + (i + 1) * 7).toFixed(1) + "%";
+    }
+    // Also include a "natural" un-extended PNG at 300 DPI
+    const naturalBlob = await imageDataToPngBlobWithDpi(cleaned, DPI);
+    zip.file("design_natural_300dpi.png", naturalBlob);
+
+    setStatus("Packaging ZIP…");
+    progressBar.style.width = "98%";
+    const zipBlob = await zip.generateAsync({ type: "blob", compression: "DEFLATE" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(zipBlob);
+    a.download = "design_print_ready.zip";
+    document.body.appendChild(a); a.click(); a.remove();
+    setStatus(`Done — ${PRINT_SIZES.length} sizes + 1 natural-size PNG packaged as <b>design_print_ready.zip</b>.`, "ok");
+    progressBar.style.width = "100%";
+  } catch (e) {
+    setStatus("Error: " + e.message, "err");
+  } finally {
+    extractBtn.disabled = false;
+    resetBtn.disabled = false;
+    reuploadBtn.disabled = false;
+    setTimeout(() => { progress.classList.remove("active"); progressBar.style.width = "0%"; }, 1500);
+  }
+});
+
+// ===== Wire up =====
+useOpenAICb.addEventListener("change", () => {
+  if (useOpenAICb.checked && !loadKey()) {
+    useOpenAICb.checked = false;
+    settingsModal.classList.add("show");
+    apiKeyInput.focus();
+  }
+});
+
+})();
+</script>
+</body>
+</html>
