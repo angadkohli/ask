@@ -140,7 +140,7 @@
         </a>
       </div>
       <div class="hint" style="color: var(--muted); font-size: 12px; margin-top: 8px;">
-        Vector trace uses <a style="color: var(--primary)" href="https://github.com/jankovicsandras/imagetracerjs" target="_blank" rel="noopener">imagetracer.js</a> &mdash; bundled into this file, works fully offline.
+        Vector trace uses <a style="color: var(--primary)" href="https://github.com/jankovicsandras/imagetracerjs" target="_blank" rel="noopener">imagetracer.js</a>, bundled into this file, works fully offline.
       </div>
     </div>
   </aside>
@@ -1822,6 +1822,16 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
   });
 
   function loadFile(file) {
+    // Immediate feedback so it never looks frozen on big files
+    setStatus("Decoding <b>" + file.name + "</b> (" + (file.size/1024/1024).toFixed(1) + " MB) …");
+    emptyState.innerHTML =
+      '<div style="font-size:32px; margin-bottom:8px;">&#x23F3;</div>' +
+      '<div>Decoding <b>' + file.name + '</b> (' +
+      (file.size/1024/1024).toFixed(1) + ' MB)…</div>' +
+      '<div class="hint" style="margin-top:8px;">Large mockups (5000+ px) can take 5–10 s.</div>';
+    emptyState.style.display = "block";
+    canvas.style.display = "none";
+
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
@@ -1829,19 +1839,31 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       sourceImage = img;
       corners = [];
       drawSource();
-      const off = document.createElement("canvas");
-      off.width = img.naturalWidth;
-      off.height = img.naturalHeight;
-      off.getContext("2d").drawImage(img, 0, 0);
-      sourceImgData = off.getContext("2d").getImageData(0, 0, off.width, off.height);
-      setStatus("Click <b>4 corners</b> of the design panel — any order works.");
-      resetBtn.disabled = false;
-      undoBtn.disabled = true;
-      generateBtn.disabled = true;
-      emptyState.style.display = "none";
-      canvas.style.display = "block";
-      clearDownloads();
-      previewImg.style.display = "none";
+      // Defer the heavy ImageData read so the canvas paints first
+      requestAnimationFrame(() => {
+        const off = document.createElement("canvas");
+        off.width = img.naturalWidth;
+        off.height = img.naturalHeight;
+        off.getContext("2d").drawImage(img, 0, 0);
+        sourceImgData = off.getContext("2d").getImageData(0, 0, off.width, off.height);
+        setStatus("Click <b>4 corners</b> of the design panel — any order works.");
+        resetBtn.disabled = false;
+        undoBtn.disabled = true;
+        generateBtn.disabled = true;
+        emptyState.style.display = "none";
+        canvas.style.display = "block";
+        clearDownloads();
+        previewImg.style.display = "none";
+      });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      setStatus("Failed to decode <b>" + file.name + "</b>. Is it a valid image?");
+      emptyState.innerHTML =
+        '<div style="font-size:32px; margin-bottom:8px;">&#x26A0;&#xFE0F;</div>' +
+        '<div>Couldn’t decode <b>' + file.name + '</b>.</div>' +
+        '<div class="hint" style="margin-top:8px;">Try a PNG or JPG. ' +
+        'If this is a TIFF / HEIC / PSD, convert it first.</div>';
     };
     img.src = url;
   }
