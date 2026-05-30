@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Design Studio — Yatri Personalized Luggage</title>
+<meta name="description" content="Design your own suitcase live: choose colour, add your name, pick Indian prints or upload your art. Print on demand, delivered across India.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Dancing+Script:wght@700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container nav">
+    <a class="logo" href="index.html"><span class="mark">य</span><span>Yatri<small>DESIGN STUDIO</small></span></a>
+    <nav class="nav-links" id="navLinks">
+      <a href="index.html">Home</a>
+      <a href="index.html#collection">Collection</a>
+      <a href="index.html#pod">Print on demand</a>
+      <span class="cart-pill">🛒 Cart <b id="cartCount">0</b></span>
+    </nav>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+  </div>
+</header>
+
+<div class="studio-head container">
+  <span class="eyebrow">Personalisation Studio</span>
+  <h1>Design your bag, live 🎨</h1>
+  <p>Change anything on the right — your preview updates instantly. Then add to cart.</p>
+</div>
+
+<div class="container studio-wrap">
+  <!-- PREVIEW -->
+  <div class="canvas-stage">
+    <canvas id="bagCanvas" width="600" height="700"></canvas>
+    <p class="stage-hint">Live preview · this is roughly how your printed bag will look</p>
+    <button class="btn btn-ghost full" id="downloadBtn" style="margin-top:14px">⬇️ Download my design (PNG)</button>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="panel">
+    <h2>Customise</h2>
+    <p class="sub">Every option updates the preview & price.</p>
+
+    <!-- Bag type -->
+    <div class="field">
+      <label>1 · Choose your bag</label>
+      <select id="bagType">
+        <option value="cabin" data-base="4499">Cabin 55 — ₹4,499</option>
+        <option value="checkin" data-base="6299">Check-in 68 — ₹6,299</option>
+        <option value="duffel" data-base="3799">Duffel Pro — ₹3,799</option>
+        <option value="kids" data-base="3299">Kids Explorer — ₹3,299</option>
+      </select>
+    </div>
+
+    <!-- Colour -->
+    <div class="field">
+      <label>2 · Base colour</label>
+      <div class="swatches" id="swatches"></div>
+    </div>
+
+    <!-- Name -->
+    <div class="field">
+      <label>3 · Add your name / initials <span style="color:var(--brand)">+₹299</span></label>
+      <input type="text" id="nameText" maxlength="14" placeholder="e.g. AANYA or A.K.">
+    </div>
+    <div class="field">
+      <label>Font style</label>
+      <div class="chip-row" id="fontChips">
+        <span class="chip active" data-font="'Poppins',sans-serif">Modern</span>
+        <span class="chip" data-font="'Playfair Display',serif">Classic</span>
+        <span class="chip" data-font="'Dancing Script',cursive">Script</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Text colour</label>
+      <div class="swatches" id="textSwatches"></div>
+    </div>
+    <div class="field">
+      <label>Text size</label>
+      <div class="range-row"><input type="range" id="textSize" min="22" max="64" value="40"></div>
+    </div>
+
+    <!-- Print theme -->
+    <div class="field">
+      <label>4 · Print theme <span style="color:var(--brand)">+₹499</span></label>
+      <div class="chip-row" id="themeChips">
+        <span class="chip active" data-theme="none">None</span>
+        <span class="chip" data-theme="mandala">Mandala</span>
+        <span class="chip" data-theme="dots">Polka</span>
+        <span class="chip" data-theme="stripes">Stripes</span>
+        <span class="chip" data-theme="paisley">Paisley</span>
+      </div>
+    </div>
+
+    <!-- Upload -->
+    <div class="field">
+      <label>5 · Upload your own art / photo <span style="color:var(--brand)">+₹399</span></label>
+      <label class="upload-box" for="imgUpload" id="uploadLabel">📷 Tap to upload a photo, logo or design</label>
+      <input type="file" id="imgUpload" accept="image/*" hidden>
+    </div>
+
+    <!-- Price -->
+    <div class="price-box" id="priceBox">
+      <div class="pl"><span>Base bag</span><span id="pBase">₹4,499</span></div>
+      <div class="pl" id="rowName" style="display:none"><span>Name personalisation</span><span>₹299</span></div>
+      <div class="pl" id="rowTheme" style="display:none"><span>Print theme</span><span>₹499</span></div>
+      <div class="pl" id="rowImg" style="display:none"><span>Custom art upload</span><span>₹399</span></div>
+      <div class="pl total"><span>Total</span><span id="pTotal">₹4,499</span></div>
+    </div>
+
+    <button class="btn btn-primary full" id="addCart">🛒 Add to cart</button>
+    <p style="text-align:center;font-size:12.5px;color:var(--ink-soft);margin:12px 0 0">🇮🇳 Free shipping over ₹2,499 · COD & UPI · 2-yr warranty</p>
+  </div>
+</div>
+
+<div class="toast" id="toast">Added to cart!</div>
+
+<footer>
+  <div class="container foot-bottom" style="border:none;margin:0">
+    <span>© 2026 Yatri Luggage Co. · A demo store</span>
+    <span>Made in India 🇮🇳 · Prices in ₹ INR</span>
+  </div>
+</footer>
+
+<script src="assets/js/products.js"></script>
+<script src="assets/js/studio.js"></script>
+</body>
+</html>
