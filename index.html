@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Yatri — Personalized Luggage, Made in India</title>
+<meta name="description" content="Design your own suitcase. Add your name, choose Indian-inspired prints, or upload your art — print-on-demand luggage delivered across India.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="container nav">
+    <a class="logo" href="index.html">
+      <span class="mark">य</span>
+      <span>Yatri<small>PERSONALISED LUGGAGE</small></span>
+    </a>
+    <nav class="nav-links" id="navLinks">
+      <a href="#collection">Collection</a>
+      <a href="#how">How it works</a>
+      <a href="#pod">Print on demand</a>
+      <a href="#reviews">Reviews</a>
+      <a class="btn btn-primary" href="studio.html">🎨 Design Studio</a>
+    </nav>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <span class="eyebrow">Made in India · Shipped pan-India</span>
+      <h1>Luggage that's <span>unmistakably yours.</span></h1>
+      <p class="lead">Design your own suitcase in minutes — add your name, pick an Indian-inspired print, or upload your own art. We print it on demand and deliver to your doorstep.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="studio.html">Start designing — it's free</a>
+        <a class="btn btn-ghost" href="#collection">Browse collection</a>
+      </div>
+      <div class="hero-trust">
+        <div><b>50k+</b> bags personalised</div>
+        <div><b>4.8★</b> on 9,000+ reviews</div>
+        <div><b>COD</b> available everywhere</div>
+      </div>
+    </div>
+    <div class="hero-art" id="heroArt">
+      <span class="tag">Live preview</span>
+      <!-- suitcase injected by JS -->
+      <div id="heroSuitcase" style="max-width:260px;margin:0 auto"></div>
+      <div class="float-badge">🇮🇳 Free shipping over ₹2,499</div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="container feature-grid">
+    <div class="feature"><div class="ic">🎨</div><h4>Live design studio</h4><p>See your design on the bag instantly — no guesswork.</p></div>
+    <div class="feature"><div class="ic">🖨️</div><h4>Print on demand</h4><p>Made only after you order. Zero waste, fully custom.</p></div>
+    <div class="feature"><div class="ic">🚚</div><h4>Pan-India delivery</h4><p>Ships to 24,000+ pincodes. COD & UPI accepted.</p></div>
+    <div class="feature"><div class="ic">🛡️</div><h4>2-year warranty</h4><p>Tough shells, smooth wheels, worry-free travel.</p></div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how" class="container">
+  <div class="section-head">
+    <span class="eyebrow">Simple as 1-2-3</span>
+    <h2>From idea to doorstep</h2>
+    <p>No design skills needed. If you can type your name, you can make your dream bag.</p>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="num">1</div><h4>Pick your bag</h4><p>Cabin, check-in, duffel or a gifting set — choose your style and base colour.</p></div>
+    <div class="step"><div class="num">2</div><h4>Make it yours</h4><p>Add your name, choose a mandala or city print, or upload your own photo/logo.</p></div>
+    <div class="step"><div class="num">3</div><h4>We print & ship</h4><p>Your one-of-a-kind bag is printed on demand and delivered across India.</p></div>
+  </div>
+</section>
+
+<!-- COLLECTION -->
+<section id="collection" class="container">
+  <div class="section-head">
+    <span class="eyebrow">The collection</span>
+    <h2>Pick a base, then personalise</h2>
+    <p>Every piece can be customised in the Design Studio.</p>
+  </div>
+  <div class="product-grid" id="product-grid"><!-- injected by products.js --></div>
+</section>
+
+<!-- PRINT ON DEMAND -->
+<section class="container">
+  <div class="pod">
+    <div class="container pod-grid" style="padding:46px 0">
+      <div>
+        <span class="eyebrow" style="color:var(--gold)">Print on demand</span>
+        <h2>Your art. Your bag. Made to order.</h2>
+        <p>Nothing is pre-printed sitting in a warehouse. The moment you place an order, we print your exact design on a fresh bag — so every piece is truly one of a kind.</p>
+        <ul>
+          <li>✅ <span>Upload <b>photos, logos or artwork</b> — weddings, brands, gifts</span></li>
+          <li>✅ <span>Indian-inspired print library: <b>mandala, paisley, city skylines</b></span></li>
+          <li>✅ <span><b>Bulk & corporate</b> gifting with your company logo</span></li>
+          <li>✅ <span>Scratch & fade-resistant <b>UV print</b>, 2-year warranty</span></li>
+        </ul>
+        <a class="btn btn-light" href="studio.html" style="margin-top:22px">Try the studio</a>
+      </div>
+      <div class="pod-card">
+        <h4 style="margin:0 0 6px">Sample order</h4>
+        <div class="line"><span>Yatri Cabin 55</span><span>₹4,499</span></div>
+        <div class="line"><span>Name monogram “AANYA”</span><span>₹299</span></div>
+        <div class="line"><span>Mandala print theme</span><span>₹499</span></div>
+        <div class="line"><span>Photo upload (back panel)</span><span>₹399</span></div>
+        <div class="line"><span>Total · COD available</span><span>₹5,696</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section id="reviews" class="container">
+  <div class="section-head">
+    <span class="eyebrow">Loved by travellers</span>
+    <h2>What India is saying</h2>
+  </div>
+  <div class="reviews">
+    <div class="review">
+      <div class="stars">★★★★★</div>
+      <p>“Gifted a personalised trolley to my husband for our anniversary with our wedding date printed. He was so surprised! Quality is excellent.”</p>
+      <div class="who"><div class="av">PS</div><div><b>Priya S.</b><br><small>Pune, MH</small></div></div>
+    </div>
+    <div class="review">
+      <div class="stars">★★★★★</div>
+      <p>“Ordered 25 bags with our startup logo for an offsite. Super easy studio, on-time delivery, and the team helped with bulk pricing.”</p>
+      <div class="who"><div class="av">RK</div><div><b>Rahul K.</b><br><small>Bengaluru, KA</small></div></div>
+    </div>
+    <div class="review">
+      <div class="stars">★★★★★</div>
+      <p>“My daughter's name on her pink cabin bag — she refuses to travel without it now. Spotting it on the belt is so easy too!”</p>
+      <div class="who"><div class="av">AM</div><div><b>Anjali M.</b><br><small>New Delhi</small></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="container">
+  <div class="cta-band">
+    <h2>Ready to design your bag?</h2>
+    <p>Free to design, pay only when you love it. Made in India, delivered to your door.</p>
+    <a class="btn btn-ghost" href="studio.html">Open the Design Studio →</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="foot-grid">
+      <div>
+        <a class="logo" href="index.html"><span class="mark">य</span><span>Yatri</span></a>
+        <p style="color:var(--ink-soft);font-size:14px;max-width:280px;margin-top:12px">Personalised, print-on-demand luggage proudly made and shipped across India.</p>
+      </div>
+      <div><h5>Shop</h5><a href="#collection">Cabin bags</a><a href="#collection">Check-in</a><a href="#collection">Duffels</a><a href="#collection">Gifting sets</a></div>
+      <div><h5>Company</h5><a href="#how">How it works</a><a href="#pod">Print on demand</a><a href="#reviews">Reviews</a><a href="#">Bulk orders</a></div>
+      <div><h5>Help</h5><a href="#">Track order</a><a href="#">Shipping & COD</a><a href="#">Returns</a><a href="#">Contact us</a></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Yatri Luggage Co. · A demo store</span>
+      <span>Made in India 🇮🇳 · Prices in ₹ INR</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/products.js"></script>
+<script>
+  // hero suitcase
+  document.getElementById('heroSuitcase').innerHTML = suitcaseSVG('#e4572e', '#ffd9c9');
+  // mobile menu
+  const t=document.getElementById('menuToggle'), n=document.getElementById('navLinks');
+  t && t.addEventListener('click',()=>n.classList.toggle('open'));
+</script>
+</body>
+</html>
